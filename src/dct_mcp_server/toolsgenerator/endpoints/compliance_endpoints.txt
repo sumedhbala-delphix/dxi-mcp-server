@@ -1,2 +1,2 @@
-/connectors/search
-/executions/search
+search_connectors|/connectors/search
+search_executions|/executions/search
