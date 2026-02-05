@@ -240,9 +240,19 @@ def generate_tools_from_openapi():
         tool_file_content = tool_file_content.replace("from enum import Enum", "")
         tool_file_content = enum_code + tool_file_content
         
-        # Generate consolidated function signature with kwargs for additional parameters
+        # Generate consolidated function signature with explicit optional parameters
         func_name = f"manage_{tool_name}"
-        function_head = f"@log_tool_execution\nasync def {func_name}(operation_type: {enum_class_name}, **kwargs) -> Dict[str, Any]:\n"
+        function_head = f"@log_tool_execution\nasync def {func_name}(\n"
+        function_head += f"    operation_type: {enum_class_name},\n"
+        function_head += f"    body: Optional[Dict[str, Any]] = None,\n"
+        function_head += f"    vdbId: Optional[str] = None,\n"
+        function_head += f"    snapshotId: Optional[str] = None,\n"
+        function_head += f"    sourceId: Optional[str] = None,\n"
+        function_head += f"    dsourceId: Optional[str] = None,\n"
+        function_head += f"    environmentId: Optional[str] = None,\n"
+        function_head += f"    jobId: Optional[str] = None,\n"
+        function_head += f"    **kwargs\n"
+        function_head += f") -> Dict[str, Any]:\n"
         
         # Build docstring with all supported operations
         docstring = f'    """Manage {tool_name} operations.\n\n'
@@ -279,8 +289,21 @@ def generate_tools_from_openapi():
         routing_logic += '    if not endpoint:\n'
         routing_logic += f'        raise ValueError(f"Unknown operation: {{operation_type.value}}")\n'
         routing_logic += '    \n'
-        routing_logic += '    # Extract parameters from kwargs\n'
-        routing_logic += '    json_body = kwargs.get("json_body", kwargs.get("body", {}))\n'
+        routing_logic += '    # Substitute path parameters\n'
+        routing_logic += '    path_params = {\n'
+        routing_logic += '        "vdbId": vdbId,\n'
+        routing_logic += '        "snapshotId": snapshotId,\n'
+        routing_logic += '        "sourceId": sourceId,\n'
+        routing_logic += '        "dsourceId": dsourceId,\n'
+        routing_logic += '        "environmentId": environmentId,\n'
+        routing_logic += '        "jobId": jobId,\n'
+        routing_logic += '    }\n'
+        routing_logic += '    for key, value in path_params.items():\n'
+        routing_logic += '        if value is not None:\n'
+        routing_logic += '            endpoint = endpoint.replace(f"{{{key}}}", value)\n'
+        routing_logic += '    \n'
+        routing_logic += '    # Prepare request parameters\n'
+        routing_logic += '    json_body = body if body is not None else kwargs.get("json_body", {})\n'
         routing_logic += '    params = kwargs.get("params", {})\n'
         routing_logic += '    \n'
         routing_logic += '    return make_api_request(method, endpoint, params=params, json_body=json_body)\n'
