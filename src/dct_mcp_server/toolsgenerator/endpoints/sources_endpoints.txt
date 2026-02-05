@@ -1,0 +1,10 @@
+/sources/search
+/sources/oracle
+/sources/postgres
+/sources/ase
+/sources/appdata
+/sources/oracle/{sourceId}
+/sources/postgres/{sourceId}
+/sources/ase/{sourceId}
+/sources/appdata/{sourceId}
+/sources/{sourceId}

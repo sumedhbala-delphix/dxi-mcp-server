@@ -1,0 +1,4 @@
+/snapshots/search
+/snapshots/{snapshotId}
+/snapshots/{snapshotId}/delete
+/snapshots/{snapshotId}/unset_expiration
