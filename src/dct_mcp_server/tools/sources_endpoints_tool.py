@@ -49,9 +49,9 @@ def build_params(**kwargs):
     return {k: v for k, v in kwargs.items() if v is not None}
 
 @log_tool_execution
-def search_environments(limit: Optional[int] = None, cursor: Optional[str] = None, sort: Optional[str] = None, filter_expression: Optional[str] = None) -> Dict[str, Any]:
+def search_sources(limit: Optional[int] = None, cursor: Optional[str] = None, sort: Optional[str] = None, filter_expression: Optional[str] = None) -> Dict[str, Any]:
     """
-    Search for environments.
+    Search for Sources.
     :param limit: Maximum number of objects to return per query. The value must be between 1 and 1000. Default is 100.
     :param limit: Maximum number of objects to return per query. The value must be between 1 and 1000. Default is 100.(optional)
     :param cursor: Cursor to fetch the next or previous page of results. The value of this property must be extracted from the 'prev_cursor' or 'next_cursor' property of a PaginatedResponseMetadata which is contained in the response of list and search API endpoints.
@@ -60,34 +60,42 @@ def search_environments(limit: Optional[int] = None, cursor: Optional[str] = Non
     :param sort: The field to sort results by. A property name with a prepended '-' signifies descending order.(optional)
     :param filter_expression: Filter expression string (optional)
     Filter expression can include the following fields:
-     - id: The Environment object entity ID.
-     - name: The name of this environment.
-     - namespace_id: The namespace id of this environment.
-     - namespace_name: The namespace name of this environment.
+     - id: The Source object entity ID.
+     - database_type: The type of this source database.
+     - name: The name of this source database.
+     - namespace_id: The namespace id of this source database.
+     - namespace_name: The namespace name of this source database.
      - is_replica: Is this a replicated object.
-     - namespace: The namespace of this environment for replicated and restored objects.
-     - engine_id: A reference to the Engine that this Environment connection is associated with.
-     - engine_name: A reference to the Engine that this Environment connection is associated with.
-     - enabled: True if this environment is enabled.
-     - encryption_enabled: Flag indicating whether the data transfer is encrypted or not.
-     - description: The environment description.
-     - is_cluster: True if this environment is a cluster of hosts.
-     - cluster_home: Cluster home for RAC environment.
-     - cluster_name: Cluster name for Oracle RAC environment.
-     - cluster_user: Cluster user for Oracle RAC environment.
-     - scan: The Single Client Access Name of the cluster (11.2 and greater clusters only).
-     - remote_listener: The default remote_listener parameter to be used for databases on the cluster.
-     - is_windows_target: True if this windows environment is a target environment.
-     - staging_environment: ID of the staging environment.
-     - hosts: The hosts that are part of this environment.
-     - tags: The tags to be created for this environment.
-     - repositories: Repositories associated with this environment. A Repository typically corresponds to a database installation.
-     - listeners: Oracle listeners associated with this environment.
-     - os_type: The operating system type of this environment.
-     - env_users: Environment users associated with this environment.
-     - ase_db_user_name: The username of the SAP ASE database user.
-     - ase_enable_tls: True if SAP ASE environment configured with TLS/SSL to discover the SAP ASE instances.
-     - ase_skip_server_certificate_validation: If True, ASE database connection will skip the server certificate validation during the TLS/SSL handshake.
+     - database_version: The version of this source database.
+     - environment_id: A reference to the Environment that hosts this source database.
+     - environment_name: name of environment that hosts this source database.
+     - data_uuid: A universal ID that uniquely identifies this source database.
+     - ip_address: The IP address of the source's host.
+     - fqdn: The FQDN of the source's host.
+     - size: The total size of this source database, in bytes.
+     - jdbc_connection_string: The JDBC connection URL for this source database.
+     - plugin_version: The version of the plugin associated with this source database.
+     - toolkit_id: The ID of the toolkit associated with this source database(AppData only).
+     - is_dsource: No description
+     - repository: The repository id for this source
+     - recovery_model: Recovery model of the source database (MSSql Only).
+     - mssql_source_type: The type of this mssql source database (MSSql Only).
+     - appdata_source_type: The type of this appdata source database (Appdata Only).
+     - is_pdb: If this source is of PDB type (Oracle Only).
+     - tags: No description
+     - instance_name: The instance name of this single instance database source.
+     - instance_number: The instance number of this single instance database source.
+     - instances: No description
+     - oracle_services: No description
+     - user: The username of the database user.
+     - environment_user_ref: The environment user reference.
+     - non_sys_user: The username of a database user that does not have administrative privileges.
+     - discovered: Whether this source was discovered.
+     - linking_enabled: Whether this source should be used for linking.
+     - cdb_type: The cdb type for this source. (Oracle only)
+     - data_connection_id: The ID of the associated DataConnection.
+     - database_name: The name of this source database.
+     - database_unique_name: The unique name of the database.
 
     How to use filter_expresssion: 
     A request body containing a filter expression. This enables searching
@@ -148,126 +156,71 @@ def search_environments(limit: Optional[int] = None, cursor: Optional[str] = Non
     # Build parameters excluding None values
     params = build_params(limit=limit, cursor=cursor, sort=sort)
     search_body = {'filter_expression': filter_expression}
-    return make_api_request('POST', '/environments/search', params=params, json_body=search_body)
+    return make_api_request('POST', '/sources/search', params=params, json_body=search_body)
 
 @log_tool_execution
-def create_environment() -> Dict[str, Any]:
+def create_oracle_source() -> Dict[str, Any]:
     """
-    Create an environment.
+    Create an Oracle Source.
     """
     # Build parameters excluding None values
     params = {}
-    return make_api_request('POST', '/environments', params=params)
+    return make_api_request('POST', '/sources/oracle', params=params)
 
 @log_tool_execution
-def get_environment_by_id() -> Dict[str, Any]:
+def create_postgres_source() -> Dict[str, Any]:
     """
-    Returns an environment by ID.
+    Create a PostgreSQL source.
     """
     # Build parameters excluding None values
     params = {}
-    return make_api_request('GET', '/environments/{environmentId}', params=params)
+    return make_api_request('POST', '/sources/postgres', params=params)
 
 @log_tool_execution
-def get_environment_by_id() -> Dict[str, Any]:
+def create_ase_source() -> Dict[str, Any]:
     """
-    Returns an environment by ID.
+    Create an ASE source.
     """
     # Build parameters excluding None values
     params = {}
-    return make_api_request('GET', '/environments/{environmentId}', params=params)
+    return make_api_request('POST', '/sources/ase', params=params)
 
 @log_tool_execution
-def enable_environment() -> Dict[str, Any]:
+def create_app_data_source() -> Dict[str, Any]:
     """
-    Enable a disabled environment.
+    Create an AppData source.
     """
     # Build parameters excluding None values
     params = {}
-    return make_api_request('POST', '/environments/{environmentId}/enable', params=params)
+    return make_api_request('POST', '/sources/appdata', params=params)
 
 @log_tool_execution
-def disable_environment() -> Dict[str, Any]:
+def get_source_by_id() -> Dict[str, Any]:
     """
-    Disable environment.
+    Get a source by ID.
     """
     # Build parameters excluding None values
     params = {}
-    return make_api_request('POST', '/environments/{environmentId}/disable', params=params)
-
-@log_tool_execution
-def refresh_environment() -> Dict[str, Any]:
-    """
-    Refresh environment.
-    """
-    # Build parameters excluding None values
-    params = {}
-    return make_api_request('POST', '/environments/{environmentId}/refresh', params=params)
-
-@log_tool_execution
-def create_repository() -> Dict[str, Any]:
-    """
-    Create a repository.
-    """
-    # Build parameters excluding None values
-    params = {}
-    return make_api_request('POST', '/environments/{environmentId}/repository', params=params)
-
-@log_tool_execution
-def create_host() -> Dict[str, Any]:
-    """
-    Create a new Host.
-    """
-    # Build parameters excluding None values
-    params = {}
-    return make_api_request('POST', '/environments/{environmentId}/hosts', params=params)
-
-@log_tool_execution
-def create_environment_user() -> Dict[str, Any]:
-    """
-    Create environment user.
-    """
-    # Build parameters excluding None values
-    params = {}
-    return make_api_request('POST', '/environments/{environmentId}/users', params=params)
-
-@log_tool_execution
-def create_oracle_listener() -> Dict[str, Any]:
-    """
-    Create Oracle listener.
-    """
-    # Build parameters excluding None values
-    params = {}
-    return make_api_request('POST', '/environments/{environmentId}/listeners', params=params)
+    return make_api_request('GET', '/sources/{sourceId}', params=params)
 
 
 def register_tools(app, dct_client):
     global client
     client = dct_client
-    logger.info(f'Registering tools for environment_endpoints...')
+    logger.info(f'Registering tools for sources_endpoints...')
     try:
-        logger.info(f'  Registering tool function: search_environments')
-        app.add_tool(search_environments, name="search_environments")
-        logger.info(f'  Registering tool function: create_environment')
-        app.add_tool(create_environment, name="create_environment")
-        logger.info(f'  Registering tool function: get_environment_by_id')
-        app.add_tool(get_environment_by_id, name="get_environment_by_id")
-        logger.info(f'  Registering tool function: get_environment_by_id')
-        app.add_tool(get_environment_by_id, name="get_environment_by_id")
-        logger.info(f'  Registering tool function: enable_environment')
-        app.add_tool(enable_environment, name="enable_environment")
-        logger.info(f'  Registering tool function: disable_environment')
-        app.add_tool(disable_environment, name="disable_environment")
-        logger.info(f'  Registering tool function: refresh_environment')
-        app.add_tool(refresh_environment, name="refresh_environment")
-        logger.info(f'  Registering tool function: create_repository')
-        app.add_tool(create_repository, name="create_repository")
-        logger.info(f'  Registering tool function: create_host')
-        app.add_tool(create_host, name="create_host")
-        logger.info(f'  Registering tool function: create_environment_user')
-        app.add_tool(create_environment_user, name="create_environment_user")
-        logger.info(f'  Registering tool function: create_oracle_listener')
-        app.add_tool(create_oracle_listener, name="create_oracle_listener")
+        logger.info(f'  Registering tool function: search_sources')
+        app.add_tool(search_sources, name="search_sources")
+        logger.info(f'  Registering tool function: create_oracle_source')
+        app.add_tool(create_oracle_source, name="create_oracle_source")
+        logger.info(f'  Registering tool function: create_postgres_source')
+        app.add_tool(create_postgres_source, name="create_postgres_source")
+        logger.info(f'  Registering tool function: create_ase_source')
+        app.add_tool(create_ase_source, name="create_ase_source")
+        logger.info(f'  Registering tool function: create_app_data_source')
+        app.add_tool(create_app_data_source, name="create_app_data_source")
+        logger.info(f'  Registering tool function: get_source_by_id')
+        app.add_tool(get_source_by_id, name="get_source_by_id")
     except Exception as e:
-        logger.error(f'Error registering tools for environment_endpoints: {e}')
-    logger.info(f'Tools registration finished for environment_endpoints.')
+        logger.error(f'Error registering tools for sources_endpoints: {e}')
+    logger.info(f'Tools registration finished for sources_endpoints.')

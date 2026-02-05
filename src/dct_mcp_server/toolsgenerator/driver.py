@@ -244,16 +244,27 @@ def generate_tools_from_openapi():
             responses = operation.get("responses", {})
 
             for status_code, details in responses.items():
-                properties = details['content']['application/json']['schema']['properties']
-                response_schema = resolve_ref(properties['items']['items']['$ref'], api_spec)
-                docstring+=" "*indent + "Filter expression can include the following fields:\n"
-                for prop_name, prop_def in response_schema.get("properties", {}).items():
-                    prop_desc = prop_def.get("description", "No description")
-                    docstring+= " "*indent +" - " + f"{prop_name}: {prop_desc}\n"
+                try:
+                    schema = details.get('content', {}).get('application/json', {}).get('schema', {})
+                    properties = schema.get('properties', {})
+                    # Try to resolve filter fields for search endpoints with proper structure
+                    if 'items' in properties and 'items' in properties['items']:
+                        response_schema = resolve_ref(properties['items']['items']['$ref'], api_spec)
+                        docstring+=" "*indent + "Filter expression can include the following fields:\n"
+                        for prop_name, prop_def in response_schema.get("properties", {}).items():
+                            prop_desc = prop_def.get("description", "No description")
+                            docstring+= " "*indent +" - " + f"{prop_name}: {prop_desc}\n"
+                except (KeyError, TypeError):
+                    # Skip docstring generation for responses that don't have the expected structure
+                    pass
             if has_search_criteria:
-                docstring += "\n" + " "*indent + "How to use filter_expresssion: \n"
-                for line in api_spec['components']['requestBodies']['SearchBody']['description'].split('\n'):
-                    docstring += " "*indent + f"{line}\n"
+                try:
+                    docstring += "\n" + " "*indent + "How to use filter_expresssion: \n"
+                    for line in api_spec['components']['requestBodies']['SearchBody']['description'].split('\n'):
+                        docstring += " "*indent + f"{line}\n"
+                except (KeyError, TypeError):
+                    # Skip filter documentation if not available
+                    pass
 
             # Generate function implementation using utility functions
             function_body = " "*indent + "# Build parameters excluding None values\n"

@@ -145,6 +145,24 @@ def search_jobs(limit: Optional[int] = None, cursor: Optional[str] = None, sort:
     search_body = {'filter_expression': filter_expression}
     return make_api_request('POST', '/jobs/search', params=params, json_body=search_body)
 
+@log_tool_execution
+def get_job_result() -> Dict[str, Any]:
+    """
+    Get job result.
+    """
+    # Build parameters excluding None values
+    params = {}
+    return make_api_request('GET', '/jobs/{jobId}/result', params=params)
+
+@log_tool_execution
+def abandon_job() -> Dict[str, Any]:
+    """
+    Abandons a job.
+    """
+    # Build parameters excluding None values
+    params = {}
+    return make_api_request('POST', '/jobs/{jobId}/abandon', params=params)
+
 
 def register_tools(app, dct_client):
     global client
@@ -153,6 +171,10 @@ def register_tools(app, dct_client):
     try:
         logger.info(f'  Registering tool function: search_jobs')
         app.add_tool(search_jobs, name="search_jobs")
+        logger.info(f'  Registering tool function: get_job_result')
+        app.add_tool(get_job_result, name="get_job_result")
+        logger.info(f'  Registering tool function: abandon_job')
+        app.add_tool(abandon_job, name="abandon_job")
     except Exception as e:
         logger.error(f'Error registering tools for job_endpoints: {e}')
     logger.info(f'Tools registration finished for job_endpoints.')

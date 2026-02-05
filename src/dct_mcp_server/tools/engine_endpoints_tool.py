@@ -118,6 +118,9 @@ false if the engine is using block storage to store its data |
 null if the engine is not initialized (unlikely) or the engine API version does not provide that information
 
      - platform: The infrastructure or environment where the engine is deployed or built, including cloud provider and instance type.
+     - storage_cache_bytes: Total number of bytes of storage reserved for storage cache
+     - priority_cache_max_bytes: Total number of bytes of storage available for VDB priority caching
+     - priority_cache_used_bytes: Total number of bytes of storage allocated to existing priority cache enabled vdbs
 
     How to use filter_expresssion: 
     A request body containing a filter expression. This enables searching
