@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Literal
 
 class Vdbs_EndpointsOperation(Enum):
     """Available operations for vdbs_endpoints."""
@@ -84,8 +85,7 @@ async def manage_vdbs_endpoints(
     sourceId: Optional[str] = None,
     dsourceId: Optional[str] = None,
     environmentId: Optional[str] = None,
-    jobId: Optional[str] = None,
-    **kwargs
+    jobId: Optional[str] = None
 ) -> Dict[str, Any]:
     """Manage vdbs_endpoints operations.
 
@@ -140,9 +140,12 @@ async def manage_vdbs_endpoints(
         "upgrade": ("/vdbs/{vdbId}/upgrade", "POST"),
     }
 
-    endpoint, method = operation_map.get(operation_type.value)
-    if not endpoint:
-        raise ValueError(f"Unknown operation: {operation_type.value}")
+    # Handle both Enum and string input for operation_type
+    op_value = operation_type.value if hasattr(operation_type, "value") else operation_type
+    result = operation_map.get(op_value)
+    if not result:
+        raise ValueError(f"Unknown operation: {op_value}")
+    endpoint, method = result
     
     # Substitute path parameters
     path_params = {
@@ -157,11 +160,10 @@ async def manage_vdbs_endpoints(
         if value is not None:
             endpoint = endpoint.replace(f"{{{key}}}", value)
     
-    # Prepare request parameters
-    json_body = body if body is not None else kwargs.get("json_body", {})
-    params = kwargs.get("params", {})
+    # Prepare request body - use empty dict for search if not provided
+    json_body = body if body is not None else {}
     
-    return make_api_request(method, endpoint, params=params, json_body=json_body)
+    return make_api_request(method, endpoint, params={}, json_body=json_body)
 
 def register_tools(app, dct_client):
     global client

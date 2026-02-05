@@ -228,19 +228,24 @@ def generate_tools_from_openapi():
         tool_class = "_".join([word.capitalize() for word in tool_name.split("_")])
         enum_class_name = f"{tool_class}Operation"
         
-        enum_code = f"from enum import Enum\n\nclass {enum_class_name}(Enum):\n"
+        # Build list of operation names for Literal type
+        op_names = sorted(operations_dict.keys())
+        op_literals = ", ".join([f'"{op}"' for op in op_names])
+        
+        enum_code = f"from enum import Enum\nfrom typing import Literal\n\nclass {enum_class_name}(Enum):\n"
         enum_code += f'    """Available operations for {tool_name}."""\n'
         
-        for op_name in sorted(operations_dict.keys()):
+        for op_name in op_names:
             enum_value = op_name.upper()
             enum_code += f'    {enum_value} = "{op_name}"\n'
         
         # Build tool file content
         tool_file_content = prefix
         tool_file_content = tool_file_content.replace("from enum import Enum", "")
+        tool_file_content = tool_file_content.replace("from typing import Literal", "")
         tool_file_content = enum_code + tool_file_content
         
-        # Generate consolidated function signature with explicit optional parameters
+        # Generate consolidated function signature with string operation_type for MCP compatibility
         func_name = f"manage_{tool_name}"
         function_head = f"@log_tool_execution\nasync def {func_name}(\n"
         function_head += f"    operation_type: {enum_class_name},\n"
@@ -284,9 +289,12 @@ def generate_tools_from_openapi():
             routing_logic += f'        "{op_name}": ("{api}", "{http_method}"),\n'
         
         routing_logic += '    }\n\n'
-        routing_logic += '    endpoint, method = operation_map.get(operation_type.value)\n'
-        routing_logic += '    if not endpoint:\n'
-        routing_logic += f'        raise ValueError(f"Unknown operation: {{operation_type.value}}")\n'
+        routing_logic += '    # Handle both Enum and string input for operation_type\n'
+        routing_logic += '    op_value = operation_type.value if hasattr(operation_type, "value") else operation_type\n'
+        routing_logic += '    result = operation_map.get(op_value)\n'
+        routing_logic += '    if not result:\n'
+        routing_logic += f'        raise ValueError(f"Unknown operation: {{op_value}}")\n'
+        routing_logic += '    endpoint, method = result\n'
         routing_logic += '    \n'
         routing_logic += '    # Substitute path parameters\n'
         routing_logic += '    path_params = {\n'
