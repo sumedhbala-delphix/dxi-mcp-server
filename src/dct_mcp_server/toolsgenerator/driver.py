@@ -184,10 +184,10 @@ def resolve_ref(ref: str, root: dict):
     return node
 
 def generate_tools_from_openapi():
-    """Generates tool files from OpenAPI spec based on APIS_TO_SUPPORT.
+    """Generates consolidated tool files from OpenAPI spec.
     
-    Handles both old format (list of strings) and new consolidated format
-    (dict of operation_name -> [endpoints] mapping).
+    Creates one function per tool that handles multiple operations via an operation_type enum.
+    Supports consolidated format: operation_name|/path/to/endpoint
     """
     load_api_endpoints()
 
@@ -200,127 +200,94 @@ def generate_tools_from_openapi():
         logger.info(f"DCT_BASE_URL found: {client_address}")
 
     api_spec = read_open_api_yaml(API_FILE)
-    logger.info("APIS to support loaded:", APIS_TO_SUPPORT)
+    logger.info(f"APIS to support loaded: {len(APIS_TO_SUPPORT)} tool categories")
     
     os.makedirs(TOOLS_DIR, exist_ok=True)
 
-    for tool_name, apis_data in APIS_TO_SUPPORT.items():
+    for tool_name, operations_dict in APIS_TO_SUPPORT.items():
         TOOL_FILE = os.path.join(TOOLS_DIR, f"{tool_name}_tool.py")
         
-        tool_file_content = prefix
-        function_lists = []
-
-        # Handle both formats: list of strings (legacy) or dict of operations (new)
-        if isinstance(apis_data, list):
-            # Legacy format: simple list of endpoints
-            apis_to_process = apis_data
-        elif isinstance(apis_data, dict):
-            # New consolidated format: flatten dict values to list
-            apis_to_process = []
-            for ops_list in apis_data.values():
-                apis_to_process.extend(ops_list)
-        else:
-            logger.warning(f"Unknown format for {tool_name}: {type(apis_data)}")
+        # Build operation mapping: operation_name -> list of endpoints
+        if not isinstance(operations_dict, dict):
+            logger.warning(f"Skipping {tool_name}: not in consolidated format")
             continue
-
-        # Generate a function for each endpoint
-        for api in apis_to_process:
-            function_head = "@log_tool_execution\ndef "
-            docstring = ""
-            path_item = api_spec.get("paths", {}).get(api, {})
-            # It could be get or post, handle if it is get or post
-            operation = path_item.get("post", path_item.get("get"))
-            if not operation:
-                logger.info(f"No operation found for API: {api}")
-                continue
-
-            # Determine HTTP method
-            http_method = "POST" if "post" in path_item else "GET"
-
-            parameters = operation.get("parameters", {})
-            operation_id = operation.get("operationId")
-            if not operation_id:
-                logger.warning(f"No operationId for {api}")
-                continue
-                
-            function_head += operation_id + "("
-            param_names = []
-            function_lists.append(operation_id)
-            
-            for param in parameters:
-                if "$ref" in param:
-                    param_def = resolve_ref(param["$ref"], api_spec)
+        
+        # Generate enum class for operations
+        tool_class = "_".join([word.capitalize() for word in tool_name.split("_")])
+        enum_class_name = f"{tool_class}Operation"
+        
+        enum_code = f"from enum import Enum\n\nclass {enum_class_name}(Enum):\n"
+        enum_code += f'    """Available operations for {tool_name}."""\n'
+        
+        for op_name in sorted(operations_dict.keys()):
+            enum_value = op_name.upper()
+            enum_code += f'    {enum_value} = "{op_name}"\n'
+        
+        # Build tool file content
+        tool_file_content = prefix
+        tool_file_content = tool_file_content.replace("from enum import Enum", "")
+        tool_file_content = enum_code + tool_file_content
+        
+        # Generate consolidated function signature
+        func_name = f"manage_{tool_name}"
+        function_head = f"@log_tool_execution\nasync def {func_name}(operation_type: {enum_class_name}) -> Dict[str, Any]:\n"
+        
+        # Build docstring with all supported operations
+        docstring = f'    """Manage {tool_name} operations.\n\n'
+        docstring += '    Supported operations:\n'
+        for op_name in sorted(operations_dict.keys()):
+            # Get first endpoint for this operation to look up its description
+            endpoints = operations_dict[op_name]
+            if endpoints:
+                api = endpoints[0]
+                path_item = api_spec.get("paths", {}).get(api, {})
+                operation = path_item.get("post", path_item.get("get"))
+                if operation:
+                    summary = operation.get("summary", op_name)
+                    docstring += f'    - {op_name}: {summary}\n'
                 else:
-                    param_def = param
-                name = param_def.get("name", "unknown")
-                try:
-                    param_type = translated_dict_for_types[param_def['schema']['type']]
-                    required = param_def.get("required")
-                    if not required:
-                        function_head += f"{name}: Optional[{param_type}] = None, "
-                    else:
-                        function_head += f"{name}: {param_type}, "
-                    param_names.append(name)
-                except KeyError:
-                    continue
-                desc = param_def.get("description", "No description")
-                docstring += " "*indent + f":param {name}: {desc}\n"
-
-            has_search_criteria = operation.get('x-filterable')
-            if has_search_criteria:
-                function_head += "filter_expression: Optional[str] = None) -> Dict[str, Any]:\n"
-                docstring += " "*indent + ":param filter_expression: Filter expression string (optional)\n"
-            else:
-                function_head = function_head.rstrip(", ") + ") -> Dict[str, Any]:\n"
-            function_head += " "*indent +"\"\"\"\n"+" "*indent +f"{operation.get('summary')}\n"
-            responses = operation.get("responses", {})
-
-            for status_code, details in responses.items():
-                try:
-                    schema = details.get('content', {}).get('application/json', {}).get('schema', {})
-                    properties = schema.get('properties', {})
-                    # Try to resolve filter fields for search endpoints with proper structure
-                    if 'items' in properties and 'items' in properties['items']:
-                        response_schema = resolve_ref(properties['items']['items']['$ref'], api_spec)
-                        docstring += " "*indent + "Filter expression can include the following fields:\n"
-                        for prop_name, prop_def in response_schema.get("properties", {}).items():
-                            prop_desc = prop_def.get("description", "No description")
-                            docstring += " "*indent +" - " + f"{prop_name}: {prop_desc}\n"
-                except (KeyError, TypeError):
-                    # Skip docstring generation for responses that don't have the expected structure
-                    pass
-                    
-            if has_search_criteria:
-                try:
-                    docstring += "\n" + " "*indent + "How to use filter_expression: \n"
-                    for line in api_spec['components']['requestBodies']['SearchBody']['description'].split('\n'):
-                        docstring += " "*indent + f"{line}\n"
-                except (KeyError, TypeError):
-                    # Skip filter documentation if not available
-                    pass
-
-            # Generate function implementation using utility functions
-            function_body = " "*indent + "# Build parameters excluding None values\n"
-
-            if param_names:
-                param_list = ", ".join([f"{name}={name}" for name in param_names])
-                function_body += " "*indent + f"params = build_params({param_list})\n"
-            else:
-                function_body += " "*indent + "params = {}\n"
-
-            if has_search_criteria and http_method == "POST":
-                function_body += " "*indent + "search_body = {'filter_expression': filter_expression}\n"
-                function_body += " "*indent + f"return make_api_request('{http_method}', '{api}', params=params, json_body=search_body)\n"
-            else:
-                function_body += " "*indent + f"return make_api_request('{http_method}', '{api}', params=params)\n"
-
-            tool_file_content += function_head + docstring + indent * " " + "\"\"\"\n" + function_body + "\n"
-
-        tool_file_content += create_register_tool_function(tool_name, function_lists)
-
+                    docstring += f'    - {op_name}\n'
+        docstring += '    """\n'
+        
+        # Build operation routing logic
+        routing_logic = '    operation_map = {\n'
+        for op_name, endpoints in sorted(operations_dict.items()):
+            if not endpoints:
+                continue
+            
+            # For consolidated tools with single endpoint per operation
+            api = endpoints[0]
+            path_item = api_spec.get("paths", {}).get(api, {})
+            http_method = "POST" if "post" in path_item else "GET"
+            
+            routing_logic += f'        "{op_name}": ("{api}", "{http_method}"),\n'
+        
+        routing_logic += '    }\n\n'
+        routing_logic += '    endpoint, method = operation_map.get(operation_type.value)\n'
+        routing_logic += '    if not endpoint:\n'
+        routing_logic += f'        raise ValueError(f"Unknown operation: {{operation_type.value}}")\n'
+        routing_logic += '    return make_api_request(method, endpoint, params={})\n'
+        
+        tool_file_content += function_head + docstring + routing_logic
+        
+        # Register the consolidated function
+        tool_file_content += f"\ndef register_tools(app, dct_client):\n"
+        tool_file_content += f'    global client\n'
+        tool_file_content += f'    client = dct_client\n'
+        tool_file_content += f'    logger.info(f"Registering consolidated tool: {func_name}")\n'
+        tool_file_content += f'    try:\n'
+        tool_file_content += f'        app.add_tool({func_name}, name="{func_name}")\n'
+        tool_file_content += f'    except Exception as e:\n'
+        tool_file_content += f'        logger.error(f"Error registering {func_name}: {{e}}")\n'
+        tool_file_content += f'    logger.info(f"Tool registration finished for {tool_name}.")\n'
+        
         with open(TOOL_FILE, "w") as f:
             f.write(tool_file_content)
+        
+        logger.info(f"Generated consolidated tool: {func_name} with {len(operations_dict)} operations")
 
     # Delete the api.yaml file after generating all tools
     if os.path.exists(API_FILE):
         os.remove(API_FILE)
+    
+    logger.info(f"Tool generation complete: {len(APIS_TO_SUPPORT)} consolidated tools created")
