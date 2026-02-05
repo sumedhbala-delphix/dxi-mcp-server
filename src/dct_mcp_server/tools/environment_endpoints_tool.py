@@ -75,7 +75,7 @@ def build_params(**kwargs):
 
 @log_tool_execution
 async def manage_environment_endpoints(
-    operation_type: Environment_EndpointsOperation,
+    operation_type: Literal["create", "create_host", "create_listener", "create_repository", "create_user", "delete", "delete_host", "delete_listener", "delete_repository", "delete_user", "disable", "enable", "get", "refresh", "search", "update", "update_host", "update_listener", "update_repository", "update_user"],
     body: Optional[Dict[str, Any]] = None,
     vdbId: Optional[str] = None,
     snapshotId: Optional[str] = None,
@@ -131,11 +131,10 @@ async def manage_environment_endpoints(
         "update_user": ("/environments/{environmentId}/users/{userRef}", "GET"),
     }
 
-    # Handle both Enum and string input for operation_type
-    op_value = operation_type.value if hasattr(operation_type, "value") else operation_type
-    result = operation_map.get(op_value)
+    # operation_type is already a string (Literal type)
+    result = operation_map.get(operation_type)
     if not result:
-        raise ValueError(f"Unknown operation: {op_value}")
+        raise ValueError(f"Unknown operation: {operation_type}")
     endpoint, method = result
     
     # Substitute path parameters

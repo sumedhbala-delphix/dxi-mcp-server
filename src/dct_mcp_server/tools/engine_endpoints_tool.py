@@ -56,7 +56,7 @@ def build_params(**kwargs):
 
 @log_tool_execution
 async def manage_engine_endpoints(
-    operation_type: Engine_EndpointsOperation,
+    operation_type: Literal["search"],
     body: Optional[Dict[str, Any]] = None,
     vdbId: Optional[str] = None,
     snapshotId: Optional[str] = None,
@@ -74,11 +74,10 @@ async def manage_engine_endpoints(
         "search": ("/management/engines/search", "POST"),
     }
 
-    # Handle both Enum and string input for operation_type
-    op_value = operation_type.value if hasattr(operation_type, "value") else operation_type
-    result = operation_map.get(op_value)
+    # operation_type is already a string (Literal type)
+    result = operation_map.get(operation_type)
     if not result:
-        raise ValueError(f"Unknown operation: {op_value}")
+        raise ValueError(f"Unknown operation: {operation_type}")
     endpoint, method = result
     
     # Substitute path parameters

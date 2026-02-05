@@ -245,10 +245,11 @@ def generate_tools_from_openapi():
         tool_file_content = tool_file_content.replace("from typing import Literal", "")
         tool_file_content = enum_code + tool_file_content
         
-        # Generate consolidated function signature with string operation_type for MCP compatibility
+        # Generate consolidated function signature with Literal type for MCP compatibility
+        # FastMCP can't serialize custom Enum classes, so we use Literal with string values
         func_name = f"manage_{tool_name}"
         function_head = f"@log_tool_execution\nasync def {func_name}(\n"
-        function_head += f"    operation_type: {enum_class_name},\n"
+        function_head += f"    operation_type: Literal[{op_literals}],\n"
         function_head += f"    body: Optional[Dict[str, Any]] = None,\n"
         function_head += f"    vdbId: Optional[str] = None,\n"
         function_head += f"    snapshotId: Optional[str] = None,\n"
@@ -289,11 +290,10 @@ def generate_tools_from_openapi():
             routing_logic += f'        "{op_name}": ("{api}", "{http_method}"),\n'
         
         routing_logic += '    }\n\n'
-        routing_logic += '    # Handle both Enum and string input for operation_type\n'
-        routing_logic += '    op_value = operation_type.value if hasattr(operation_type, "value") else operation_type\n'
-        routing_logic += '    result = operation_map.get(op_value)\n'
+        routing_logic += '    # operation_type is already a string (Literal type)\n'
+        routing_logic += '    result = operation_map.get(operation_type)\n'
         routing_logic += '    if not result:\n'
-        routing_logic += f'        raise ValueError(f"Unknown operation: {{op_value}}")\n'
+        routing_logic += f'        raise ValueError(f"Unknown operation: {{operation_type}}")\n'
         routing_logic += '    endpoint, method = result\n'
         routing_logic += '    \n'
         routing_logic += '    # Substitute path parameters\n'

@@ -63,7 +63,7 @@ def build_params(**kwargs):
 
 @log_tool_execution
 async def manage_dataset_endpoints(
-    operation_type: Dataset_EndpointsOperation,
+    operation_type: Literal["search_bookmarks", "search_data_connections", "search_dsources", "search_snapshots", "search_sources", "search_timeflows", "search_vdb_groups", "search_vdbs"],
     body: Optional[Dict[str, Any]] = None,
     vdbId: Optional[str] = None,
     snapshotId: Optional[str] = None,
@@ -95,11 +95,10 @@ async def manage_dataset_endpoints(
         "search_vdbs": ("/vdbs/search", "POST"),
     }
 
-    # Handle both Enum and string input for operation_type
-    op_value = operation_type.value if hasattr(operation_type, "value") else operation_type
-    result = operation_map.get(op_value)
+    # operation_type is already a string (Literal type)
+    result = operation_map.get(operation_type)
     if not result:
-        raise ValueError(f"Unknown operation: {op_value}")
+        raise ValueError(f"Unknown operation: {operation_type}")
     endpoint, method = result
     
     # Substitute path parameters

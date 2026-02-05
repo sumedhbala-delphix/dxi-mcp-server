@@ -75,7 +75,7 @@ def build_params(**kwargs):
 
 @log_tool_execution
 async def manage_dsources_endpoints(
-    operation_type: Dsources_EndpointsOperation,
+    operation_type: Literal["attach_mssql", "attach_mssql_staging", "attach_oracle", "delete", "detach_mssql", "detach_oracle", "disable", "enable", "link_appdata", "link_ase", "link_mssql", "link_mssql_staging", "link_oracle", "link_oracle_staging", "search", "snapshot", "update_appdata", "update_ase", "update_mssql", "update_oracle"],
     body: Optional[Dict[str, Any]] = None,
     vdbId: Optional[str] = None,
     snapshotId: Optional[str] = None,
@@ -131,11 +131,10 @@ async def manage_dsources_endpoints(
         "update_oracle": ("/dsources/oracle/{dsourceId}", "GET"),
     }
 
-    # Handle both Enum and string input for operation_type
-    op_value = operation_type.value if hasattr(operation_type, "value") else operation_type
-    result = operation_map.get(op_value)
+    # operation_type is already a string (Literal type)
+    result = operation_map.get(operation_type)
     if not result:
-        raise ValueError(f"Unknown operation: {op_value}")
+        raise ValueError(f"Unknown operation: {operation_type}")
     endpoint, method = result
     
     # Substitute path parameters
