@@ -184,7 +184,11 @@ def resolve_ref(ref: str, root: dict):
     return node
 
 def generate_tools_from_openapi():
-    """Generates tool files from OpenAPI spec based on APIS_TO_SUPPORT."""
+    """Generates tool files from OpenAPI spec based on APIS_TO_SUPPORT.
+    
+    Handles both old format (list of strings) and new consolidated format
+    (dict of operation_name -> [endpoints] mapping).
+    """
     load_api_endpoints()
 
     # Download the openapi yaml from application using client
@@ -200,13 +204,27 @@ def generate_tools_from_openapi():
     
     os.makedirs(TOOLS_DIR, exist_ok=True)
 
-    for tool_name, apis in APIS_TO_SUPPORT.items():
+    for tool_name, apis_data in APIS_TO_SUPPORT.items():
         TOOL_FILE = os.path.join(TOOLS_DIR, f"{tool_name}_tool.py")
         
         tool_file_content = prefix
         function_lists = []
 
-        for api in apis:
+        # Handle both formats: list of strings (legacy) or dict of operations (new)
+        if isinstance(apis_data, list):
+            # Legacy format: simple list of endpoints
+            apis_to_process = apis_data
+        elif isinstance(apis_data, dict):
+            # New consolidated format: flatten dict values to list
+            apis_to_process = []
+            for ops_list in apis_data.values():
+                apis_to_process.extend(ops_list)
+        else:
+            logger.warning(f"Unknown format for {tool_name}: {type(apis_data)}")
+            continue
+
+        # Generate a function for each endpoint
+        for api in apis_to_process:
             function_head = "@log_tool_execution\ndef "
             docstring = ""
             path_item = api_spec.get("paths", {}).get(api, {})
@@ -220,9 +238,15 @@ def generate_tools_from_openapi():
             http_method = "POST" if "post" in path_item else "GET"
 
             parameters = operation.get("parameters", {})
-            function_head+= operation.get("operationId") + "("
+            operation_id = operation.get("operationId")
+            if not operation_id:
+                logger.warning(f"No operationId for {api}")
+                continue
+                
+            function_head += operation_id + "("
             param_names = []
-            function_lists.append(operation.get("operationId"))
+            function_lists.append(operation_id)
+            
             for param in parameters:
                 if "$ref" in param:
                     param_def = resolve_ref(param["$ref"], api_spec)
@@ -231,7 +255,6 @@ def generate_tools_from_openapi():
                 name = param_def.get("name", "unknown")
                 try:
                     param_type = translated_dict_for_types[param_def['schema']['type']]
-                    # Make limit and cursor optional parameters
                     required = param_def.get("required")
                     if not required:
                         function_head += f"{name}: Optional[{param_type}] = None, "
@@ -242,20 +265,14 @@ def generate_tools_from_openapi():
                     continue
                 desc = param_def.get("description", "No description")
                 docstring += " "*indent + f":param {name}: {desc}\n"
-                required = param_def.get("required")
-                if required:
-                    required = "required"
-                else:
-                    required = "optional"
-                docstring += " "*indent + f":param {name}: {desc}({required})\n"
 
             has_search_criteria = operation.get('x-filterable')
             if has_search_criteria:
-                function_head+= "filter_expression: Optional[str] = None) -> Dict[str, Any]:\n"
+                function_head += "filter_expression: Optional[str] = None) -> Dict[str, Any]:\n"
                 docstring += " "*indent + ":param filter_expression: Filter expression string (optional)\n"
             else:
                 function_head = function_head.rstrip(", ") + ") -> Dict[str, Any]:\n"
-            function_head+= " "*indent +"\"\"\"\n"+" "*indent +f"{operation.get('summary')}\n"
+            function_head += " "*indent +"\"\"\"\n"+" "*indent +f"{operation.get('summary')}\n"
             responses = operation.get("responses", {})
 
             for status_code, details in responses.items():
@@ -265,16 +282,17 @@ def generate_tools_from_openapi():
                     # Try to resolve filter fields for search endpoints with proper structure
                     if 'items' in properties and 'items' in properties['items']:
                         response_schema = resolve_ref(properties['items']['items']['$ref'], api_spec)
-                        docstring+=" "*indent + "Filter expression can include the following fields:\n"
+                        docstring += " "*indent + "Filter expression can include the following fields:\n"
                         for prop_name, prop_def in response_schema.get("properties", {}).items():
                             prop_desc = prop_def.get("description", "No description")
-                            docstring+= " "*indent +" - " + f"{prop_name}: {prop_desc}\n"
+                            docstring += " "*indent +" - " + f"{prop_name}: {prop_desc}\n"
                 except (KeyError, TypeError):
                     # Skip docstring generation for responses that don't have the expected structure
                     pass
+                    
             if has_search_criteria:
                 try:
-                    docstring += "\n" + " "*indent + "How to use filter_expresssion: \n"
+                    docstring += "\n" + " "*indent + "How to use filter_expression: \n"
                     for line in api_spec['components']['requestBodies']['SearchBody']['description'].split('\n'):
                         docstring += " "*indent + f"{line}\n"
                 except (KeyError, TypeError):
