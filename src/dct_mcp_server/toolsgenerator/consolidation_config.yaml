@@ -1,0 +1,55 @@
+# Tool Consolidation Configuration
+# Format: tool_name: [endpoint_patterns_or_names]
+# This file defines which endpoints should be grouped into consolidated tools
+
+# Core Data Management - 6 tools
+datasources:
+  - search_datasources
+  - create_datasources_oracle
+  - create_datasources_postgres
+  - create_datasources_ase
+  - create_datasources_appdata
+  - update_datasources
+  - delete_datasources
+  - link_datasources_oracle
+  - link_datasources_postgres
+  - link_datasources_ase
+  - attach_detach_datasources
+
+virtual_databases:
+  - search_vdbs
+  - provision_vdbs_timestamp
+  - provision_vdbs_snapshot
+  - provision_vdbs_location
+  - provision_vdbs_bookmark
+  - refresh_vdbs_timestamp
+  - refresh_vdbs_snapshot
+  - refresh_vdbs_location
+  - refresh_vdbs_bookmark
+  - rollback_vdbs_timestamp
+  - rollback_vdbs_snapshot
+  - rollback_vdbs_bookmark
+  - manage_vdb_lifecycle
+  - upgrade_vdbs
+
+snapshots:
+  - search_snapshots
+  - get_snapshot_details
+  - delete_snapshots
+  - manage_snapshot_retention
+
+environments:
+  - search_environments
+  - create_environments
+  - update_environments
+  - delete_environments
+  - manage_environment_resources
+  - manage_repositories
+  - manage_hosts
+  - manage_environment_users
+  - manage_oracle_listeners
+
+jobs:
+  - search_jobs
+  - get_job_results
+  - manage_job_execution

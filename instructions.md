@@ -159,3 +159,46 @@ To regenerate tools after updating endpoint definition files:
 - **Configuration**: [config.py](src/dct_mcp_server/config/config.py)
 - **DCT Client**: [client.py](src/dct_mcp_server/dct_client/client.py)
 - **OpenAPI Spec**: [swagger.json](swagger.json) (local reference; actual spec from DCT API)
+
+## Tool Consolidation Strategy
+
+To reduce the number of generated tools from ~77 to <15 for better AI client usability, implement consolidation:
+
+### Current Status
+- **77 individual tools** generated (one per endpoint operation)
+- Each operation is a separate function: `search_vdbs()`, `provision_vdb_by_timestamp()`, etc.
+
+### Consolidated Approach
+
+Create **parameterized tools** with operation enums instead:
+
+```python
+# Target: manage_vdbs(operation="search") instead of search_vdbs()
+# Single function handles multiple related operations with routing logic
+```
+
+### Implementation Steps
+
+1. Group endpoints by resource type (sources, datasources, vdbs, snapshots, etc.)
+2. Create operation enums per group (VdbOperation.SEARCH, etc.)
+3. Generate single function per group with operation parameter
+4. Add operation tags to endpoint files (e.g., `search|/vdbs/search`)
+5. Update generator in driver.py to parse and consolidate
+
+### Target: <15 Consolidated Tools
+
+- manage_sources
+- manage_datasources  
+- manage_vdbs
+- manage_snapshots
+- manage_environments
+- manage_jobs
+- manage_vdb_lifecycle
+- (plus 5-8 additional specialized tools)
+
+### Benefits
+
+- **Reduced Complexity**: 77 tools → ~12 tools  
+- **Better AI Understanding**: Operation enums clarify intent
+- **Type Safety**: Enum prevents invalid operations
+- **Backward Compatible**: Both approaches can coexist during transition
