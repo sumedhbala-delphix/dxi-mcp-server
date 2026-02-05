@@ -240,9 +240,9 @@ def generate_tools_from_openapi():
         tool_file_content = tool_file_content.replace("from enum import Enum", "")
         tool_file_content = enum_code + tool_file_content
         
-        # Generate consolidated function signature
+        # Generate consolidated function signature with kwargs for additional parameters
         func_name = f"manage_{tool_name}"
-        function_head = f"@log_tool_execution\nasync def {func_name}(operation_type: {enum_class_name}) -> Dict[str, Any]:\n"
+        function_head = f"@log_tool_execution\nasync def {func_name}(operation_type: {enum_class_name}, **kwargs) -> Dict[str, Any]:\n"
         
         # Build docstring with all supported operations
         docstring = f'    """Manage {tool_name} operations.\n\n'
@@ -278,7 +278,12 @@ def generate_tools_from_openapi():
         routing_logic += '    endpoint, method = operation_map.get(operation_type.value)\n'
         routing_logic += '    if not endpoint:\n'
         routing_logic += f'        raise ValueError(f"Unknown operation: {{operation_type.value}}")\n'
-        routing_logic += '    return make_api_request(method, endpoint, params={})\n'
+        routing_logic += '    \n'
+        routing_logic += '    # Extract parameters from kwargs\n'
+        routing_logic += '    json_body = kwargs.get("json_body", kwargs.get("body", {}))\n'
+        routing_logic += '    params = kwargs.get("params", {})\n'
+        routing_logic += '    \n'
+        routing_logic += '    return make_api_request(method, endpoint, params=params, json_body=json_body)\n'
         
         tool_file_content += function_head + docstring + routing_logic
         

@@ -59,12 +59,12 @@ async def manage_compliance_endpoints(operation_type: Compliance_EndpointsOperat
     """Manage compliance_endpoints operations.
 
     Supported operations:
-    - search_connectors
-    - search_executions
+    - search_connectors: Search for masking Connectors.
+    - search_executions: Search masking executions.
     """
     operation_map = {
-        "search_connectors": ("/connectors/search", "GET"),
-        "search_executions": ("/executions/search", "GET"),
+        "search_connectors": ("/connectors/search", "POST"),
+        "search_executions": ("/executions/search", "POST"),
     }
 
     endpoint, method = operation_map.get(operation_type.value)
