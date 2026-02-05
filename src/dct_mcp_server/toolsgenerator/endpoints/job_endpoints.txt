@@ -1,3 +1,3 @@
-/jobs/search
-/jobs/{jobId}/result
-/jobs/{jobId}/abandon
+search|/jobs/search
+get_result|/jobs/{jobId}/result
+abandon|/jobs/{jobId}/abandon

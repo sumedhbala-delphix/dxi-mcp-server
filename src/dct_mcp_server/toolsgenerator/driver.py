@@ -36,7 +36,12 @@ indent = 4
 logger = logging.getLogger(__name__)
 
 def load_api_endpoints():
-    """Loads API endpoints from files in TOOL_DIR into APIS_TO_SUPPORT dict."""
+    """Loads API endpoints from files in TOOL_DIR into APIS_TO_SUPPORT dict.
+    
+    Supports two formats:
+    1. Simple: /path/to/endpoint (generates one function per endpoint)
+    2. Consolidated: operation_name|/path/to/endpoint (groups operations into single function)
+    """
     global APIS_TO_SUPPORT
     APIS_TO_SUPPORT = {}  # Reset the dictionary before loading
     os.makedirs(TOOL_DIR, exist_ok=True)
@@ -44,12 +49,22 @@ def load_api_endpoints():
         # Store the files as values of the dict with key as filename without _endpoints.txt
         if file.endswith("_endpoints.txt"):
             file_name = file.split(".")[0]
-            APIS_TO_SUPPORT[file_name] = []
+            APIS_TO_SUPPORT[file_name] = {}  # Change to dict to support grouping
             with open(os.path.join(TOOL_DIR, file), "r") as f:
                 for line in f:
                     stripped_line = line.strip()
-                    if stripped_line:
-                        APIS_TO_SUPPORT[file_name].append(stripped_line)
+                    if stripped_line and not stripped_line.startswith("#"):
+                        # Check if this is consolidated format (operation|endpoint)
+                        if "|" in stripped_line:
+                            operation_name, endpoint = stripped_line.split("|", 1)
+                            if operation_name not in APIS_TO_SUPPORT[file_name]:
+                                APIS_TO_SUPPORT[file_name][operation_name] = []
+                            APIS_TO_SUPPORT[file_name][operation_name].append(endpoint)
+                        else:
+                            # Legacy format - treat endpoint as operation name
+                            if stripped_line not in APIS_TO_SUPPORT[file_name]:
+                                APIS_TO_SUPPORT[file_name][stripped_line] = []
+                            APIS_TO_SUPPORT[file_name][stripped_line].append(stripped_line)
 
 
 def download_open_api_yaml(api_url: str, save_path: str):
