@@ -54,7 +54,17 @@ def build_params(**kwargs):
     return {k: v for k, v in kwargs.items() if v is not None}
 
 @log_tool_execution
-async def manage_engine_endpoints(operation_type: Engine_EndpointsOperation) -> Dict[str, Any]:
+async def manage_engine_endpoints(
+    operation_type: Engine_EndpointsOperation,
+    body: Optional[Dict[str, Any]] = None,
+    vdbId: Optional[str] = None,
+    snapshotId: Optional[str] = None,
+    sourceId: Optional[str] = None,
+    dsourceId: Optional[str] = None,
+    environmentId: Optional[str] = None,
+    jobId: Optional[str] = None,
+    **kwargs
+) -> Dict[str, Any]:
     """Manage engine_endpoints operations.
 
     Supported operations:
@@ -67,7 +77,25 @@ async def manage_engine_endpoints(operation_type: Engine_EndpointsOperation) -> 
     endpoint, method = operation_map.get(operation_type.value)
     if not endpoint:
         raise ValueError(f"Unknown operation: {operation_type.value}")
-    return make_api_request(method, endpoint, params={})
+    
+    # Substitute path parameters
+    path_params = {
+        "vdbId": vdbId,
+        "snapshotId": snapshotId,
+        "sourceId": sourceId,
+        "dsourceId": dsourceId,
+        "environmentId": environmentId,
+        "jobId": jobId,
+    }
+    for key, value in path_params.items():
+        if value is not None:
+            endpoint = endpoint.replace(f"{{{key}}}", value)
+    
+    # Prepare request parameters
+    json_body = body if body is not None else kwargs.get("json_body", {})
+    params = kwargs.get("params", {})
+    
+    return make_api_request(method, endpoint, params=params, json_body=json_body)
 
 def register_tools(app, dct_client):
     global client

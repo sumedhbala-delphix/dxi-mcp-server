@@ -250,8 +250,7 @@ def generate_tools_from_openapi():
         function_head += f"    sourceId: Optional[str] = None,\n"
         function_head += f"    dsourceId: Optional[str] = None,\n"
         function_head += f"    environmentId: Optional[str] = None,\n"
-        function_head += f"    jobId: Optional[str] = None,\n"
-        function_head += f"    **kwargs\n"
+        function_head += f"    jobId: Optional[str] = None\n"
         function_head += f") -> Dict[str, Any]:\n"
         
         # Build docstring with all supported operations
@@ -302,11 +301,10 @@ def generate_tools_from_openapi():
         routing_logic += '        if value is not None:\n'
         routing_logic += '            endpoint = endpoint.replace(f"{{{key}}}", value)\n'
         routing_logic += '    \n'
-        routing_logic += '    # Prepare request parameters\n'
-        routing_logic += '    json_body = body if body is not None else kwargs.get("json_body", {})\n'
-        routing_logic += '    params = kwargs.get("params", {})\n'
+        routing_logic += '    # Prepare request body - use empty dict for search if not provided\n'
+        routing_logic += '    json_body = body if body is not None else {}\n'
         routing_logic += '    \n'
-        routing_logic += '    return make_api_request(method, endpoint, params=params, json_body=json_body)\n'
+        routing_logic += '    return make_api_request(method, endpoint, params={}, json_body=json_body)\n'
         
         tool_file_content += function_head + docstring + routing_logic
         
