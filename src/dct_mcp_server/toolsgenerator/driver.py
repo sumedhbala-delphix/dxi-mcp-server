@@ -188,16 +188,28 @@ def generate_tools_from_openapi():
     
     Creates one function per tool that handles multiple operations via an operation_type enum.
     Supports consolidated format: operation_name|/path/to/endpoint
+    
+    Falls back to local swagger.json if network is unavailable.
     """
     load_api_endpoints()
 
-    # Download the openapi yaml from application using client
+    # Try to download the latest OpenAPI spec, fall back to local copy
     client_address = f"{os.getenv('DCT_BASE_URL')}/dct/static/api-external.yaml"
     API_FILE = os.path.join(project_root, "src", "api.yaml")
-    download_open_api_yaml(client_address, API_FILE)
-
-    if client_address:
+    SWAGGER_FILE = os.path.join(project_root, "swagger.json")
+    
+    try:
+        download_open_api_yaml(client_address, API_FILE)
         logger.info(f"DCT_BASE_URL found: {client_address}")
+    except Exception as e:
+        logger.warning(f"Could not download OpenAPI spec, using local swagger.json: {e}")
+        if os.path.exists(SWAGGER_FILE):
+            logger.info(f"Using fallback OpenAPI spec from {SWAGGER_FILE}")
+            import shutil
+            shutil.copy(SWAGGER_FILE, API_FILE)
+        else:
+            logger.error(f"No OpenAPI spec available - cannot generate tools")
+            raise
 
     api_spec = read_open_api_yaml(API_FILE)
     logger.info(f"APIS to support loaded: {len(APIS_TO_SUPPORT)} tool categories")
