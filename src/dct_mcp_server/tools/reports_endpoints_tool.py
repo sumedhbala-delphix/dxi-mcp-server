@@ -2,9 +2,9 @@ from enum import Enum
 
 class Reports_EndpointsOperation(Enum):
     """Available operations for reports_endpoints."""
-    /REPORTING/STORAGE-CAPACITY-DATA-REPORT/SEARCH = "/reporting/storage-capacity-data-report/search"
-    /REPORTING/STORAGE-SAVINGS-REPORT/SEARCH = "/reporting/storage-savings-report/search"
-    /REPORTING/VIRTUALIZATION-STORAGE-SUMMARY-REPORT/SEARCH = "/reporting/virtualization-storage-summary-report/search"
+    SEARCH_STORAGE_CAPACITY = "search_storage_capacity"
+    SEARCH_STORAGE_SAVINGS = "search_storage_savings"
+    SEARCH_VIRTUALIZATION_SUMMARY = "search_virtualization_summary"
 from mcp.server.fastmcp import FastMCP
 from typing import Dict,Any,Optional
 from ..core.decorators import log_tool_execution
@@ -60,14 +60,14 @@ async def manage_reports_endpoints(operation_type: Reports_EndpointsOperation) -
     """Manage reports_endpoints operations.
 
     Supported operations:
-    - /reporting/storage-capacity-data-report/search: Search engine storage capacity data.
-    - /reporting/storage-savings-report/search: Search the saving storage summary report for virtualization engines.
-    - /reporting/virtualization-storage-summary-report/search: Search the storage summary report for virtualization engines.
+    - search_storage_capacity: Search engine storage capacity data.
+    - search_storage_savings: Search the saving storage summary report for virtualization engines.
+    - search_virtualization_summary: Search the storage summary report for virtualization engines.
     """
     operation_map = {
-        "/reporting/storage-capacity-data-report/search": ("/reporting/storage-capacity-data-report/search", "POST"),
-        "/reporting/storage-savings-report/search": ("/reporting/storage-savings-report/search", "POST"),
-        "/reporting/virtualization-storage-summary-report/search": ("/reporting/virtualization-storage-summary-report/search", "POST"),
+        "search_storage_capacity": ("/reporting/storage-capacity-data-report/search", "POST"),
+        "search_storage_savings": ("/reporting/storage-savings-report/search", "POST"),
+        "search_virtualization_summary": ("/reporting/virtualization-storage-summary-report/search", "POST"),
     }
 
     endpoint, method = operation_map.get(operation_type.value)

@@ -2,8 +2,8 @@ from enum import Enum
 
 class Compliance_EndpointsOperation(Enum):
     """Available operations for compliance_endpoints."""
-    /CONNECTORS/SEARCH = "/connectors/search"
-    /EXECUTIONS/SEARCH = "/executions/search"
+    SEARCH_CONNECTORS = "search_connectors"
+    SEARCH_EXECUTIONS = "search_executions"
 from mcp.server.fastmcp import FastMCP
 from typing import Dict,Any,Optional
 from ..core.decorators import log_tool_execution
@@ -59,12 +59,12 @@ async def manage_compliance_endpoints(operation_type: Compliance_EndpointsOperat
     """Manage compliance_endpoints operations.
 
     Supported operations:
-    - /connectors/search: Search for masking Connectors.
-    - /executions/search: Search masking executions.
+    - search_connectors: Search for masking Connectors.
+    - search_executions: Search masking executions.
     """
     operation_map = {
-        "/connectors/search": ("/connectors/search", "POST"),
-        "/executions/search": ("/executions/search", "POST"),
+        "search_connectors": ("/connectors/search", "POST"),
+        "search_executions": ("/executions/search", "POST"),
     }
 
     endpoint, method = operation_map.get(operation_type.value)

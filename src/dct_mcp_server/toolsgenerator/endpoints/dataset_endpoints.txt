@@ -3,6 +3,6 @@ search_data_connections|/data-connections/search
 search_dsources|/dsources/search
 search_snapshots|/snapshots/search
 search_sources|/sources/search
-/timeflows/search
-/vdb-groups/search
-/vdbs/search
+search_timeflows|/timeflows/search
+search_vdb_groups|/vdb-groups/search
+search_vdbs|/vdbs/search

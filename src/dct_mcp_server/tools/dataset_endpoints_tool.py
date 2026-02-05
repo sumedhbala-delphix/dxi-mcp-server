@@ -2,14 +2,14 @@ from enum import Enum
 
 class Dataset_EndpointsOperation(Enum):
     """Available operations for dataset_endpoints."""
-    /BOOKMARKS/SEARCH = "/bookmarks/search"
-    /DATA-CONNECTIONS/SEARCH = "/data-connections/search"
-    /DSOURCES/SEARCH = "/dsources/search"
-    /SNAPSHOTS/SEARCH = "/snapshots/search"
-    /SOURCES/SEARCH = "/sources/search"
     /TIMEFLOWS/SEARCH = "/timeflows/search"
     /VDB-GROUPS/SEARCH = "/vdb-groups/search"
     /VDBS/SEARCH = "/vdbs/search"
+    SEARCH_BOOKMARKS = "search_bookmarks"
+    SEARCH_DATA_CONNECTIONS = "search_data_connections"
+    SEARCH_DSOURCES = "search_dsources"
+    SEARCH_SNAPSHOTS = "search_snapshots"
+    SEARCH_SOURCES = "search_sources"
 from mcp.server.fastmcp import FastMCP
 from typing import Dict,Any,Optional
 from ..core.decorators import log_tool_execution
@@ -65,24 +65,24 @@ async def manage_dataset_endpoints(operation_type: Dataset_EndpointsOperation) -
     """Manage dataset_endpoints operations.
 
     Supported operations:
-    - /bookmarks/search: Search for bookmarks.
-    - /data-connections/search: Search for data connections.
-    - /dsources/search: Search for dSources.
-    - /snapshots/search: Search snapshots.
-    - /sources/search: Search for Sources.
     - /timeflows/search: Search timeflows.
     - /vdb-groups/search: Search for VDB Groups.
     - /vdbs/search: Search for VDBs.
+    - search_bookmarks: Search for bookmarks.
+    - search_data_connections: Search for data connections.
+    - search_dsources: Search for dSources.
+    - search_snapshots: Search snapshots.
+    - search_sources: Search for Sources.
     """
     operation_map = {
-        "/bookmarks/search": ("/bookmarks/search", "POST"),
-        "/data-connections/search": ("/data-connections/search", "POST"),
-        "/dsources/search": ("/dsources/search", "POST"),
-        "/snapshots/search": ("/snapshots/search", "POST"),
-        "/sources/search": ("/sources/search", "POST"),
         "/timeflows/search": ("/timeflows/search", "POST"),
         "/vdb-groups/search": ("/vdb-groups/search", "POST"),
         "/vdbs/search": ("/vdbs/search", "POST"),
+        "search_bookmarks": ("/bookmarks/search", "POST"),
+        "search_data_connections": ("/data-connections/search", "POST"),
+        "search_dsources": ("/dsources/search", "POST"),
+        "search_snapshots": ("/snapshots/search", "POST"),
+        "search_sources": ("/sources/search", "POST"),
     }
 
     endpoint, method = operation_map.get(operation_type.value)

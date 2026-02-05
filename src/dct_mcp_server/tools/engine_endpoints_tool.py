@@ -2,7 +2,7 @@ from enum import Enum
 
 class Engine_EndpointsOperation(Enum):
     """Available operations for engine_endpoints."""
-    /MANAGEMENT/ENGINES/SEARCH = "/management/engines/search"
+    SEARCH = "search"
 from mcp.server.fastmcp import FastMCP
 from typing import Dict,Any,Optional
 from ..core.decorators import log_tool_execution
@@ -58,10 +58,10 @@ async def manage_engine_endpoints(operation_type: Engine_EndpointsOperation) -> 
     """Manage engine_endpoints operations.
 
     Supported operations:
-    - /management/engines/search: Search for engines.
+    - search: Search for engines.
     """
     operation_map = {
-        "/management/engines/search": ("/management/engines/search", "POST"),
+        "search": ("/management/engines/search", "POST"),
     }
 
     endpoint, method = operation_map.get(operation_type.value)
