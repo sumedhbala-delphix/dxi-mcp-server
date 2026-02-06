@@ -13,6 +13,7 @@ def get_dct_config() -> Dict[str, Any]:
         "api_key": os.getenv("DCT_API_KEY"),
         "base_url": os.getenv("DCT_BASE_URL", "https://localhost:8083"),
         "verify_ssl": os.getenv("DCT_VERIFY_SSL", "false").lower() == "true",
+        "require_confirmation": os.getenv("DCT_REQUIRE_CONFIRMATION", "true").lower() == "true",
         "timeout": int(os.getenv("DCT_TIMEOUT", "30")),
         "max_retries": int(os.getenv("DCT_MAX_RETRIES", "3")),
         "log_level": os.getenv("DCT_LOG_LEVEL", "INFO").upper(),

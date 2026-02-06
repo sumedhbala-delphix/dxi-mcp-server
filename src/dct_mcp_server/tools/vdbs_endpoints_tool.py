@@ -29,6 +29,7 @@ class Vdbs_EndpointsOperation(Enum):
 from mcp.server.fastmcp import FastMCP
 from typing import Dict,Any,Optional
 from ..core.decorators import log_tool_execution
+from ..config.config import get_dct_config
 import asyncio
 import logging
 import threading
@@ -173,8 +174,9 @@ async def manage_vdbs_endpoints(
         json_body = {**json_body, "filter_expression": filter_expression}
     
     # Check if confirmation is required for destructive operations
+    dct_config = get_dct_config()
     is_destructive = method in ["POST", "PUT", "DELETE"] and not is_search and operation_type != "get"
-    if is_destructive and not confirm:
+    if is_destructive and dct_config["require_confirmation"] and not confirm:
         return {
             "requires_confirmation": True,
             "operation": operation_type,
