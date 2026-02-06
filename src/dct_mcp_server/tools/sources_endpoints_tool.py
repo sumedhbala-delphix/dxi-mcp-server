@@ -52,12 +52,9 @@ def async_to_sync(async_func):
             return asyncio.run(async_func(*args, **kwargs))
     return wrapper
 
-def make_api_request(method: str, endpoint: str, params: dict = None, json_body: dict = None):
+async def make_api_request(method: str, endpoint: str, params: dict = None, json_body: dict = None):
     """Utility function to make API requests with consistent parameter handling."""
-    @async_to_sync
-    async def _make_request():
-        return await client.make_request(method, endpoint, params=params or {}, json=json_body)
-    return _make_request()
+    return await client.make_request(method, endpoint, params=params or {}, json=json_body)
 
 def build_params(**kwargs):
     """Build parameters dictionary excluding None values."""
@@ -123,7 +120,7 @@ async def manage_sources_endpoints(
     # Prepare request body - use empty dict for search if not provided
     json_body = body if body is not None else {}
     
-    return make_api_request(method, endpoint, params={}, json_body=json_body)
+    return await make_api_request(method, endpoint, params={}, json_body=json_body)
 
 def register_tools(app, dct_client):
     global client

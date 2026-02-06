@@ -132,12 +132,9 @@ def async_to_sync(async_func):
             return asyncio.run(async_func(*args, **kwargs))
     return wrapper
 
-def make_api_request(method: str, endpoint: str, params: dict = None, json_body: dict = None):
+async def make_api_request(method: str, endpoint: str, params: dict = None, json_body: dict = None):
     \"\"\"Utility function to make API requests with consistent parameter handling.\"\"\"
-    @async_to_sync
-    async def _make_request():
-        return await client.make_request(method, endpoint, params=params or {}, json=json_body)
-    return _make_request()
+    return await client.make_request(method, endpoint, params=params or {}, json=json_body)
 
 def build_params(**kwargs):
     \"\"\"Build parameters dictionary excluding None values.\"\"\"
@@ -312,7 +309,7 @@ def generate_tools_from_openapi():
         routing_logic += '    # Prepare request body - use empty dict for search if not provided\n'
         routing_logic += '    json_body = body if body is not None else {}\n'
         routing_logic += '    \n'
-        routing_logic += '    return make_api_request(method, endpoint, params={}, json_body=json_body)\n'
+        routing_logic += '    return await make_api_request(method, endpoint, params={}, json_body=json_body)\n'
         
         tool_file_content += function_head + docstring + routing_logic
         
@@ -337,3 +334,6 @@ def generate_tools_from_openapi():
         os.remove(API_FILE)
     
     logger.info(f"Tool generation complete: {len(APIS_TO_SUPPORT)} consolidated tools created")
+
+if __name__ == "__main__":
+    generate_tools_from_openapi()
