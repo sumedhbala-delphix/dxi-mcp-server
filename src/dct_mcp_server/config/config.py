@@ -48,12 +48,13 @@ def print_config_help():
     print("  DCT_API_KEY      Your DCT API key (required)")
     print()
     print("Optional Environment Variables:")
-    print("  DCT_BASE_URL     DCT base URL (default: https://localhost:8083)")
-    print("  DCT_VERIFY_SSL   Verify SSL certificates (default: false)")
-    print("  DCT_TIMEOUT      Request timeout in seconds (default: 30)")
-    print("  DCT_MAX_RETRIES  Maximum retry attempts (default: 3)")
+    print("  DCT_BASE_URL              DCT base URL (default: https://localhost:8083)")
+    print("  DCT_VERIFY_SSL            Verify SSL certificates (default: false)")
+    print("  DCT_REQUIRE_CONFIRMATION  Require confirmation for destructive operations (default: true)")
+    print("  DCT_TIMEOUT               Request timeout in seconds (default: 30)")
+    print("  DCT_MAX_RETRIES           Maximum retry attempts (default: 3)")
     print(
-        "  DCT_LOG_LEVEL    Logging level (default: INFO, options: DEBUG, INFO, WARNING, ERROR, CRITICAL)"
+        "  DCT_LOG_LEVEL             Logging level (default: INFO, options: DEBUG, INFO, WARNING, ERROR, CRITICAL)"
     )
     print(
         "  IS_LOCAL_TELEMETRY_ENABLED Enable local telemetry data collection (default: false)"
@@ -63,5 +64,6 @@ def print_config_help():
     print("  export DCT_API_KEY=apk1.your-api-key-here")
     print("  export DCT_BASE_URL=https://your-dct-host:8083")
     print("  export DCT_VERIFY_SSL=true")
+    print("  export DCT_REQUIRE_CONFIRMATION=false")
     print("  export DCT_LOG_LEVEL=DEBUG")
     print()

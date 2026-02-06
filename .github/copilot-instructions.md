@@ -11,6 +11,9 @@ The MCP server dynamically generates tool modules from the DCT OpenAPI specifica
 For tool generation to succeed, ensure:
 
 - **Environment Variables**: `DCT_BASE_URL` and `DCT_API_KEY` are configured (see [README.md](README.md))
+- **Optional Configuration**:
+  - `DCT_REQUIRE_CONFIRMATION` (default: `true`) - Controls whether destructive operations (POST/PUT/DELETE excluding search/get) require explicit confirmation via the `confirm` parameter
+  - Set to `false` to auto-confirm all destructive operations in the MCP settings
 - **OpenAPI Accessibility**: The DCT API endpoint `/api/v3/openapi.yaml` must be reachable
 - **SSL Verification**: Controlled by `IGNORE_SSL_WARNINGS` config setting (see [config.py](src/dct_mcp_server/config/config.py))
 
