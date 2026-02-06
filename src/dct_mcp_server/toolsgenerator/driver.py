@@ -236,7 +236,7 @@ def generate_tools_from_openapi():
         
         # Generate consolidated function signature with Literal type for MCP compatibility
         # FastMCP can't serialize custom Enum classes, so we use Literal with string values
-        func_name = f"manage_{tool_name}"
+        func_name = f"dct_manage_{tool_name}"
         function_head = f"@log_tool_execution\nasync def {func_name}(\n"
         function_head += f"    operation_type: Literal[{op_literals}],\n"
         function_head += f"    body: Optional[Dict[str, Any]] = None,\n"
@@ -249,7 +249,8 @@ def generate_tools_from_openapi():
         function_head += f"    limit: Optional[int] = None,\n"
         function_head += f"    cursor: Optional[str] = None,\n"
         function_head += f"    sort: Optional[str] = None,\n"
-        function_head += f"    filter_expression: Optional[str] = None\n"
+        function_head += f"    filter_expression: Optional[str] = None,\n"
+        function_head += f"    confirm: bool = False\n"
         function_head += f") -> Dict[str, Any]:\n"
         
         # Build docstring with all supported operations
@@ -327,6 +328,18 @@ def generate_tools_from_openapi():
         routing_logic += '    json_body = body if body is not None else {}\n'
         routing_logic += '    if is_search and filter_expression is not None:\n'
         routing_logic += '        json_body = {**json_body, "filter_expression": filter_expression}\n'
+        routing_logic += '    \n'
+        routing_logic += '    # Check if confirmation is required for destructive operations\n'
+        routing_logic += '    is_destructive = method in ["POST", "PUT", "DELETE"] and not is_search and operation_type != "get" and operation_type != "get_result"\n'
+        routing_logic += '    if is_destructive and not confirm:\n'
+        routing_logic += '        return {\n'
+        routing_logic += '            "requires_confirmation": True,\n'
+        routing_logic += '            "operation": operation_type,\n'
+        routing_logic += '            "method": method,\n'
+        routing_logic += '            "endpoint": endpoint,\n'
+        routing_logic += '            "parameters": {k: v for k, v in {"vdbId": vdbId, "snapshotId": snapshotId, "sourceId": sourceId, "dsourceId": dsourceId, "environmentId": environmentId, "jobId": jobId, "body": body}.items() if v is not None},\n'
+        routing_logic += '            "message": f"This operation \'{operation_type}\' is destructive and requires confirmation. Please review the parameters and call again with confirm=True to proceed."\n'
+        routing_logic += '        }\n'
         routing_logic += '    \n'
         routing_logic += '    return await make_api_request(method, endpoint, params=params, json_body=json_body)\n'
         

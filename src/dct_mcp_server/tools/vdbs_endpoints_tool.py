@@ -86,7 +86,8 @@ async def manage_vdbs_endpoints(
     limit: Optional[int] = None,
     cursor: Optional[str] = None,
     sort: Optional[str] = None,
-    filter_expression: Optional[str] = None
+    filter_expression: Optional[str] = None,
+    confirm: bool = False
 ) -> Dict[str, Any]:
     """Manage vdbs_endpoints operations.
 
@@ -170,6 +171,26 @@ async def manage_vdbs_endpoints(
     json_body = body if body is not None else {}
     if is_search and filter_expression is not None:
         json_body = {**json_body, "filter_expression": filter_expression}
+    
+    # Check if confirmation is required for destructive operations
+    is_destructive = method in ["POST", "PUT", "DELETE"] and not is_search and operation_type != "get"
+    if is_destructive and not confirm:
+        return {
+            "requires_confirmation": True,
+            "operation": operation_type,
+            "method": method,
+            "endpoint": endpoint,
+            "parameters": {
+                "vdbId": vdbId,
+                "snapshotId": snapshotId,
+                "sourceId": sourceId,
+                "dsourceId": dsourceId,
+                "environmentId": environmentId,
+                "jobId": jobId,
+                "body": body
+            },
+            "message": f"This operation '{operation_type}' is destructive and requires confirmation. Please review the parameters and call again with confirm=True to proceed."
+        }
     
     return await make_api_request(method, endpoint, params=params, json_body=json_body)
 
