@@ -60,7 +60,11 @@ async def manage_engine_endpoints(
     sourceId: Optional[str] = None,
     dsourceId: Optional[str] = None,
     environmentId: Optional[str] = None,
-    jobId: Optional[str] = None
+    jobId: Optional[str] = None,
+    limit: Optional[int] = None,
+    cursor: Optional[str] = None,
+    sort: Optional[str] = None,
+    filter_expression: Optional[str] = None
 ) -> Dict[str, Any]:
     """Manage engine_endpoints operations.
 
@@ -93,17 +97,22 @@ async def manage_engine_endpoints(
         if value is not None:
             endpoint = endpoint.replace(f"{{{key}}}", value)
     
-    # Prepare request body - use empty dict for search if not provided
-    json_body = body if body is not None else {}
+    is_search = operation_type.startswith("search")
+    params = build_params(limit=limit, cursor=cursor, sort=sort) if is_search else {}
     
-    return await make_api_request(method, endpoint, params={}, json_body=json_body)
+    # Prepare request body - include filter_expression for search operations
+    json_body = body if body is not None else {}
+    if is_search and filter_expression is not None:
+        json_body = {**json_body, "filter_expression": filter_expression}
+    
+    return await make_api_request(method, endpoint, params=params, json_body=json_body)
 
 def register_tools(app, dct_client):
     global client
     client = dct_client
-    logger.info(f"Registering consolidated tool: manage_engine_endpoints")
+    logger.info(f"Registering DCT tool: dct_manage_engine_endpoints")
     try:
-        app.add_tool(manage_engine_endpoints, name="manage_engine_endpoints")
+        app.add_tool(manage_engine_endpoints, name="dct_manage_engine_endpoints")
     except Exception as e:
-        logger.error(f"Error registering manage_engine_endpoints: {e}")
+        logger.error(f"Error registering dct_manage_engine_endpoints: {e}")
     logger.info(f"Tool registration finished for engine_endpoints.")

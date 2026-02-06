@@ -53,6 +53,7 @@ The generation process runs automatically during server startup in [`main.py`](s
    - Generated function implementations
    - Helper utilities (`make_api_request`, `build_params`, `async_to_sync`)
    - `register_tools(app, dct_client)` function for MCP registration
+   - **Tool Naming Convention**: All tools are prefixed with `dct_` (e.g., `dct_manage_vdbs_endpoints`) to prevent conflicts in multi-server MCP environments. The MCP protocol does not automatically namespace tools by server, so this prefix ensures AI agents can distinguish DCT tools from other MCP servers (like Atlassian) when multiple servers are configured.
 6. **Clean Up**: Delete temporary `src/api.yaml`
 7. **Discover and Register**: MCP server imports all `*_tool.py` modules and registers tools via their `register_tools()` functions
 
@@ -187,13 +188,15 @@ Create **parameterized tools** with operation enums instead:
 
 ### Target: <15 Consolidated Tools
 
-- manage_sources
-- manage_datasources  
-- manage_vdbs
-- manage_snapshots
-- manage_environments
-- manage_jobs
-- manage_vdb_lifecycle
+All tools use the `dct_` prefix for multi-server disambiguation:
+
+- dct_manage_sources
+- dct_manage_datasources  
+- dct_manage_vdbs
+- dct_manage_snapshots
+- dct_manage_environments
+- dct_manage_jobs
+- dct_manage_vdb_lifecycle
 - (plus 5-8 additional specialized tools)
 
 ### Benefits

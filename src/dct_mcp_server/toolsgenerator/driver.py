@@ -245,7 +245,11 @@ def generate_tools_from_openapi():
         function_head += f"    sourceId: Optional[str] = None,\n"
         function_head += f"    dsourceId: Optional[str] = None,\n"
         function_head += f"    environmentId: Optional[str] = None,\n"
-        function_head += f"    jobId: Optional[str] = None\n"
+        function_head += f"    jobId: Optional[str] = None,\n"
+        function_head += f"    limit: Optional[int] = None,\n"
+        function_head += f"    cursor: Optional[str] = None,\n"
+        function_head += f"    sort: Optional[str] = None,\n"
+        function_head += f"    filter_expression: Optional[str] = None\n"
         function_head += f") -> Dict[str, Any]:\n"
         
         # Build docstring with all supported operations
@@ -316,10 +320,15 @@ def generate_tools_from_openapi():
         routing_logic += '        if value is not None:\n'
         routing_logic += '            endpoint = endpoint.replace(f"{{{key}}}", value)\n'
         routing_logic += '    \n'
-        routing_logic += '    # Prepare request body - use empty dict for search if not provided\n'
-        routing_logic += '    json_body = body if body is not None else {}\n'
+        routing_logic += '    is_search = operation_type.startswith("search")\n'
+        routing_logic += '    params = build_params(limit=limit, cursor=cursor, sort=sort) if is_search else {}\n'
         routing_logic += '    \n'
-        routing_logic += '    return await make_api_request(method, endpoint, params={}, json_body=json_body)\n'
+        routing_logic += '    # Prepare request body - include filter_expression for search operations\n'
+        routing_logic += '    json_body = body if body is not None else {}\n'
+        routing_logic += '    if is_search and filter_expression is not None:\n'
+        routing_logic += '        json_body = {**json_body, "filter_expression": filter_expression}\n'
+        routing_logic += '    \n'
+        routing_logic += '    return await make_api_request(method, endpoint, params=params, json_body=json_body)\n'
         
         tool_file_content += function_head + docstring + routing_logic
         
@@ -327,12 +336,12 @@ def generate_tools_from_openapi():
         tool_file_content += f"\ndef register_tools(app, dct_client):\n"
         tool_file_content += f'    global client\n'
         tool_file_content += f'    client = dct_client\n'
-        tool_file_content += f'    logger.info(f"Registering consolidated tool: {func_name}")\n'
+        tool_file_content += f'    logger.info(f"Registering DCT tool: {func_name}")\n'
         tool_file_content += f'    try:\n'
         tool_file_content += f'        app.add_tool({func_name}, name="{func_name}")\n'
         tool_file_content += f'    except Exception as e:\n'
         tool_file_content += f'        logger.error(f"Error registering {func_name}: {{e}}")\n'
-        tool_file_content += f'    logger.info(f"Tool registration finished for {tool_name}.")\n'
+        tool_file_content += f'    logger.info(f"Tool registration finished for {tool_name}.")'  
         
         with open(TOOL_FILE, "w") as f:
             f.write(tool_file_content)
