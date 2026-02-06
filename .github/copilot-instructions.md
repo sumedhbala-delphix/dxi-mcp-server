@@ -208,3 +208,14 @@ All tools use the `dct_` prefix for multi-server disambiguation:
 - **Better AI Understanding**: Operation enums clarify intent
 - **Type Safety**: Enum prevents invalid operations
 - **Backward Compatible**: Both approaches can coexist during transition
+
+## Temporary Files
+
+Use the `temp/` folder at the project root for any files that should NOT be pushed to git:
+
+- Test plans and execution status files
+- Test scripts and debugging outputs
+- Scratch files and temporary notes
+- Any generated artifacts for local testing
+
+The `temp/` folder is in `.gitignore` and will not be committed to the repository.
