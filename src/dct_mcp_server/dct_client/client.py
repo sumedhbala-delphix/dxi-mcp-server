@@ -107,6 +107,8 @@ class DCTAPIClient:
 
             except httpx.HTTPStatusError as e:
                 error_msg = f"HTTP {e.response.status_code}: {e.response.text}"
+                logger.error(f"API request to {url} failed: {error_msg}")
+                logger.error(f"Request body: {json_data}")
                 if attempt == self.max_retries - 1:
                     logger.error(
                         f"API request failed after {self.max_retries} attempts: {error_msg}"
@@ -118,12 +120,14 @@ class DCTAPIClient:
                     )
                     await asyncio.sleep(2**attempt)  # Exponential backoff
             except Exception as e:
+                logger.error(f"Request to {url} failed: {str(e)}")
+                logger.error(f"Request body was: {json_data}")
                 if attempt == self.max_retries - 1:
                     logger.error(
                         f"Request failed after {self.max_retries} attempts: {str(e)}"
                     )
                     raise DCTClientError(
-                        f"Request failed after {self.max_retries} attempts"
+                        f"Request failed after {self.max_retries} attempts: {str(e)}"
                     ) from e
                 else:
                     logger.warning(

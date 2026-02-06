@@ -287,6 +287,21 @@ def generate_tools_from_openapi():
                     docstring += f'    - {op_name}: {summary}\n'
                 else:
                     docstring += f'    - {op_name}\n'
+        
+        # Add filter expression syntax documentation for search operations
+        if any('search' in op.lower() for op in operations_dict.keys()):
+            docstring += '''
+    Filter Expression Syntax (for search operations):
+    DCT uses keyword operators, NOT symbolic operators. Examples:
+    - Equality: name EQ 'value'
+    - Contains: name CONTAINS 'partial'
+    - Not equals: status NE 'FAILED'
+    - Comparison: size GT 100, size LE 500
+    - In list: status IN ('RUNNING', 'ENABLED')
+    - Logical: name CONTAINS 'prod' AND status EQ 'RUNNING'
+    
+    Available operators: EQ, NE, CONTAINS, NOT_CONTAINS, LT, LE, GT, GE, IN, NOT_IN
+'''
         docstring += '    """\n'
         
         # Build operation routing logic

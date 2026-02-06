@@ -19,5 +19,3 @@ rollback_timestamp|/vdbs/{vdbId}/rollback_by_timestamp
 rollback_snapshot|/vdbs/{vdbId}/rollback_by_snapshot
 rollback_bookmark|/vdbs/{vdbId}/rollback_from_bookmark
 upgrade|/vdbs/{vdbId}/upgrade
-lock|/vdbs/{vdbId}/lock
-unlock|/vdbs/{vdbId}/unlock

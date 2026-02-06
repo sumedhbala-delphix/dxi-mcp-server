@@ -7,7 +7,6 @@ class Vdbs_EndpointsOperation(Enum):
     DISABLE = "disable"
     ENABLE = "enable"
     GET = "get"
-    LOCK = "lock"
     PROVISION_BOOKMARK = "provision_bookmark"
     PROVISION_EMPTY = "provision_empty"
     PROVISION_LOCATION = "provision_location"
@@ -24,7 +23,6 @@ class Vdbs_EndpointsOperation(Enum):
     SNAPSHOT = "snapshot"
     START = "start"
     STOP = "stop"
-    UNLOCK = "unlock"
     UPGRADE = "upgrade"
 from mcp.server.fastmcp import FastMCP
 from typing import Dict,Any,Optional
@@ -76,7 +74,7 @@ def build_params(**kwargs):
 
 @log_tool_execution
 async def manage_vdbs_endpoints(
-    operation_type: Literal["delete", "disable", "enable", "get", "lock", "provision_bookmark", "provision_empty", "provision_location", "provision_snapshot", "provision_timestamp", "refresh_bookmark", "refresh_location", "refresh_snapshot", "refresh_timestamp", "rollback_bookmark", "rollback_snapshot", "rollback_timestamp", "search", "snapshot", "start", "stop", "unlock", "upgrade"],
+    operation_type: Literal["delete", "disable", "enable", "get", "provision_bookmark", "provision_empty", "provision_location", "provision_snapshot", "provision_timestamp", "refresh_bookmark", "refresh_location", "refresh_snapshot", "refresh_timestamp", "rollback_bookmark", "rollback_snapshot", "rollback_timestamp", "search", "snapshot", "start", "stop", "upgrade"],
     body: Optional[Dict[str, Any]] = None,
     vdbId: Optional[str] = None,
     snapshotId: Optional[str] = None,
@@ -100,7 +98,6 @@ async def manage_vdbs_endpoints(
     - disable: Disable a VDB.
     - enable: Enable a VDB.
     - get: Get a VDB by ID.
-    - lock: Lock a VDB.
     - provision_bookmark: Provision a new VDB from a bookmark with a single VDB.
     - provision_empty: Provision an empty VDB.
     - provision_location: Provision a new VDB by location.
@@ -117,15 +114,21 @@ async def manage_vdbs_endpoints(
     - snapshot: Snapshot a VDB.
     - start: Start a VDB.
     - stop: Stop a VDB.
-    - unlock: Unlock a VDB.
     - upgrade: Upgrade VDB
+
+    Filter Expression Syntax (for search operations):
+    DCT uses keyword operators, NOT symbols. Examples:
+    - "name CONTAINS 'prod'" - partial match
+    - "database_name EQ 'mydb'" - exact match
+    - "status EQ 'RUNNING'" - filter by status
+    - "name CONTAINS 'test' AND status EQ 'RUNNING'" - combine with AND/OR
+    Available operators: EQ, NE, CONTAINS, NOT_CONTAINS, LT, LE, GT, GE, IN, NOT_IN
     """
     operation_map = {
         "delete": ("/vdbs/{vdbId}/delete", "POST"),
         "disable": ("/vdbs/{vdbId}/disable", "POST"),
         "enable": ("/vdbs/{vdbId}/enable", "POST"),
         "get": ("/vdbs/{vdbId}", "GET"),
-        "lock": ("/vdbs/{vdbId}/lock", "POST"),
         "provision_bookmark": ("/vdbs/provision_from_bookmark", "POST"),
         "provision_empty": ("/vdbs/empty_vdb", "POST"),
         "provision_location": ("/vdbs/provision_by_location", "POST"),
@@ -142,7 +145,6 @@ async def manage_vdbs_endpoints(
         "snapshot": ("/vdbs/{vdbId}/snapshots", "POST"),
         "start": ("/vdbs/{vdbId}/start", "POST"),
         "stop": ("/vdbs/{vdbId}/stop", "POST"),
-        "unlock": ("/vdbs/{vdbId}/unlock", "POST"),
         "upgrade": ("/vdbs/{vdbId}/upgrade", "POST"),
     }
 
