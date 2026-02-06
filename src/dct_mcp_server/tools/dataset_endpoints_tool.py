@@ -71,6 +71,9 @@ async def manage_dataset_endpoints(
 ) -> Dict[str, Any]:
     """Manage dataset_endpoints operations.
 
+    Resource: datasets.
+    Use this tool only for datasets operations.
+
     Supported operations:
     - search_bookmarks: Search for bookmarks.
     - search_data_connections: Search for data connections.

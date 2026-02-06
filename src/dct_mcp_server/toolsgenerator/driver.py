@@ -257,7 +257,25 @@ def generate_tools_from_openapi():
         function_head += f") -> Dict[str, Any]:\n"
         
         # Build docstring with all supported operations
+        resource_hints = {
+            "engine_endpoints": "engines (DCT engines/servers, inventory, status)",
+            "vdbs_endpoints": "VDBs (virtual databases, provisioning, refresh, snapshot, start/stop)",
+            "snapshots_endpoints": "snapshots (list, create, delete)",
+            "sources_endpoints": "sources (dSources and source databases)",
+            "dsources_endpoints": "dSources (source databases)",
+            "environment_endpoints": "environments (hosts/targets)",
+            "dataset_endpoints": "datasets",
+            "job_endpoints": "jobs (async tasks and results)",
+            "reports_endpoints": "reports",
+            "compliance_endpoints": "compliance (masking connectors/executions)",
+        }
+        resource_hint = resource_hints.get(
+            tool_name,
+            tool_name.replace("_endpoints", "").replace("_", " ")
+        )
         docstring = f'    """Manage {tool_name} operations.\n\n'
+        docstring += f'    Resource: {resource_hint}.\n'
+        docstring += f'    Use this tool only for {resource_hint} operations.\n\n'
         docstring += '    Supported operations:\n'
         for op_name in sorted(operations_dict.keys()):
             # Get first endpoint for this operation to look up its description

@@ -86,6 +86,9 @@ async def manage_vdbs_endpoints(
 ) -> Dict[str, Any]:
     """Manage vdbs_endpoints operations.
 
+    Resource: VDBs (virtual databases, provisioning, refresh, snapshot, start/stop).
+    Use this tool only for VDBs (virtual databases, provisioning, refresh, snapshot, start/stop) operations.
+
     Supported operations:
     - delete: Delete a VDB.
     - disable: Disable a VDB.

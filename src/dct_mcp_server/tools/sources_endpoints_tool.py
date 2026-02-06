@@ -73,6 +73,9 @@ async def manage_sources_endpoints(
 ) -> Dict[str, Any]:
     """Manage sources_endpoints operations.
 
+    Resource: sources (dSources and source databases).
+    Use this tool only for sources (dSources and source databases) operations.
+
     Supported operations:
     - create_appdata: Create an AppData source.
     - create_ase: Create an ASE source.

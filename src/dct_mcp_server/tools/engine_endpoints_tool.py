@@ -64,6 +64,9 @@ async def manage_engine_endpoints(
 ) -> Dict[str, Any]:
     """Manage engine_endpoints operations.
 
+    Resource: engines (DCT engines/servers, inventory, status).
+    Use this tool only for engines (DCT engines/servers, inventory, status) operations.
+
     Supported operations:
     - search: Search for engines.
     """

@@ -83,6 +83,9 @@ async def manage_environment_endpoints(
 ) -> Dict[str, Any]:
     """Manage environment_endpoints operations.
 
+    Resource: environments (hosts/targets).
+    Use this tool only for environments (hosts/targets) operations.
+
     Supported operations:
     - create: Create an environment.
     - create_host: Create a new Host.

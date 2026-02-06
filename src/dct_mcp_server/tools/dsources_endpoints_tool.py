@@ -83,6 +83,9 @@ async def manage_dsources_endpoints(
 ) -> Dict[str, Any]:
     """Manage dsources_endpoints operations.
 
+    Resource: dSources (source databases).
+    Use this tool only for dSources (source databases) operations.
+
     Supported operations:
     - attach_mssql: Attaches a MSSql source to a previously detached dsource.
     - attach_mssql_staging: Attaches a MSSql staging push database to a previously detached dsource.

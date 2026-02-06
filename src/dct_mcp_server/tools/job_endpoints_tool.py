@@ -66,6 +66,9 @@ async def manage_job_endpoints(
 ) -> Dict[str, Any]:
     """Manage job_endpoints operations.
 
+    Resource: jobs (async tasks and results).
+    Use this tool only for jobs (async tasks and results) operations.
+
     Supported operations:
     - abandon: Abandons a job.
     - get_result: Get job result.

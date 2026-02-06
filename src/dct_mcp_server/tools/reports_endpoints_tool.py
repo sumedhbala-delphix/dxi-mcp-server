@@ -66,6 +66,9 @@ async def manage_reports_endpoints(
 ) -> Dict[str, Any]:
     """Manage reports_endpoints operations.
 
+    Resource: reports.
+    Use this tool only for reports operations.
+
     Supported operations:
     - search_storage_capacity: Search engine storage capacity data.
     - search_storage_savings: Search the saving storage summary report for virtualization engines.

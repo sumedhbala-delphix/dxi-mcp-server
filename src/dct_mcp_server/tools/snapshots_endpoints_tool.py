@@ -67,6 +67,9 @@ async def manage_snapshots_endpoints(
 ) -> Dict[str, Any]:
     """Manage snapshots_endpoints operations.
 
+    Resource: snapshots (list, create, delete).
+    Use this tool only for snapshots (list, create, delete) operations.
+
     Supported operations:
     - delete: Delete a Snapshot.
     - get: Get a Snapshot by ID.

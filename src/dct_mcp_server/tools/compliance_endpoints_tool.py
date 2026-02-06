@@ -65,13 +65,16 @@ async def manage_compliance_endpoints(
 ) -> Dict[str, Any]:
     """Manage compliance_endpoints operations.
 
+    Resource: compliance (masking connectors/executions).
+    Use this tool only for compliance (masking connectors/executions) operations.
+
     Supported operations:
-    - search_connectors: Search for masking Connectors.
-    - search_executions: Search masking executions.
+    - search_connectors
+    - search_executions
     """
     operation_map = {
-        "search_connectors": ("/connectors/search", "POST"),
-        "search_executions": ("/executions/search", "POST"),
+        "search_connectors": ("/connectors/search", "GET"),
+        "search_executions": ("/executions/search", "GET"),
     }
 
     # operation_type is already a string (Literal type)
